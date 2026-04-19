@@ -10,7 +10,12 @@ export default function AnnouncementBanner() {
   const [hasLaunched, setHasLaunched] = useState(false);
   
   // TEST TIMER: 30 Seconds from load
-  const [targetTime] = useState(() => new Date().getTime() + 30 * 1000);
+  const [targetTime] = useState(() => {
+    const target = new Date();
+    // Sets the launch time to exactly 7:30 PM today (19:30:00)
+    target.setHours(19, 30, 0, 0); 
+    return target.getTime();
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
