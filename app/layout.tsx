@@ -4,7 +4,8 @@ import "./globals.css";
 import { LoadingScreen } from "@/components/layout/LoadingScreen";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { CustomCursor } from "@/components/layout/CustomCursor";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import AnnouncementBanner from "@/components/ui/AnnouncementBanner";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -33,13 +34,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${geist.variable} ${geistMono.variable} ${display.variable} antialiased min-h-screen flex flex-col`}>
-        <LoadingScreen />
-        <CustomCursor />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <LoadingScreen />
+          <AnnouncementBanner />
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

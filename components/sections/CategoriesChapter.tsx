@@ -12,6 +12,7 @@ export function CategoriesChapter() {
       href: '/products?category=3d-printing',
       image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2000&auto=format&fit=crop&grayscale=true',
       span: 'md:col-span-2',
+      darkCard: true,
     },
     {
       code: '[ SYS.02 ]',
@@ -20,6 +21,7 @@ export function CategoriesChapter() {
       href: '/products?category=wood-carving',
       image: 'https://images.unsplash.com/photo-1596769066601-cb86807f43cb?q=80&w=2000&auto=format&fit=crop&grayscale=true',
       span: '',
+      darkCard: true,
     },
     {
       code: '[ SYS.03 ]',
@@ -60,7 +62,7 @@ export function CategoriesChapter() {
             >
               <Link
                 href={card.href}
-                className="group relative block h-full overflow-hidden rounded-[4px] border border-border bg-surface p-6 hover:border-accent hover:shadow-[0_0_24px_rgba(255,68,0,0.2)] transition-all duration-100"
+                className={`group relative block h-full overflow-hidden rounded-[4px] border bg-surface p-6 transition-all duration-100 ${card.darkCard ? 'border-white/10 hover:border-white/20' : 'border-border hover:border-accent hover:shadow-[0_0_24px_rgba(255,68,0,0.2)]'}`}
                 data-cursor-label="VIEW"
               >
                 <img
@@ -71,13 +73,13 @@ export function CategoriesChapter() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20" />
 
                 <div className="relative z-10 h-full flex flex-col">
-                  <span className="self-end font-mono text-[10px] uppercase tracking-[0.24em] text-text-muted">
+                  <span className={`self-end font-mono text-[10px] uppercase tracking-[0.24em] ${card.darkCard ? 'text-white/50' : 'text-text-muted'}`}>
                     {card.code}
                   </span>
-                  <h3 className="mt-auto font-display font-bold uppercase tracking-tight text-[32px] md:text-[38px] leading-[0.95] text-text-primary">
+                  <h3 className={`mt-auto font-display font-bold uppercase tracking-tight text-[32px] md:text-[38px] leading-[0.95] ${card.darkCard ? 'text-white' : 'text-text-primary'}`}>
                     {card.title}
                   </h3>
-                  <p className="mt-3 font-sans text-[14px] leading-relaxed text-text-secondary max-w-sm">
+                  <p className={`mt-3 font-sans text-[14px] leading-relaxed max-w-sm ${card.darkCard ? 'text-white/80' : 'text-text-secondary'}`}>
                     {card.subtitle}
                   </p>
                 </div>

@@ -10,7 +10,7 @@ export function ProcessChapter() {
       desc: 'Upload CAD, STL, or concept references. We parse tolerance, geometry and material constraints instantly.',
       image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=2000&auto=format&fit=crop&grayscale=true',
       video: '/videos/13068031_1920_1080_25fps.mp4',
-      videoClass: 'absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500',
+      videoClass: 'absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500',
       overlayClass: 'absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-0',
       span: 'md:col-span-2 md:row-span-2',
     },
@@ -77,13 +77,13 @@ export function ProcessChapter() {
               <div className={card.overlayClass ?? 'absolute inset-0 z-0 bg-gradient-to-t from-black via-black/50 to-transparent'} />
 
               <div className="relative z-10 h-full flex flex-col">
-                <span className="self-end font-mono text-[10px] uppercase tracking-[0.24em] text-text-muted">
+                <span className="self-end font-mono text-[10px] uppercase tracking-[0.24em] text-white/50">
                   {card.code}
                 </span>
-                <h3 className="mt-auto font-display font-bold uppercase tracking-tight text-[28px] md:text-[34px] leading-[0.95] text-text-primary">
+                <h3 className="mt-auto font-display font-bold uppercase tracking-tight text-[28px] md:text-[34px] leading-[0.95] text-white">
                   {card.title}
                 </h3>
-                <p className="mt-3 font-sans text-[14px] leading-relaxed text-text-secondary max-w-md">
+                <p className="mt-3 font-sans text-[14px] leading-relaxed max-w-md text-white/80">
                   {card.desc}
                 </p>
               </div>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { MiddleCountdown } from '@/components/ui/MiddleCountdown';
 
 export function HeroSection() {
   return (
@@ -12,10 +13,10 @@ export function HeroSection() {
         muted
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-40 -z-20"
+        className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 -z-20"
       />
 
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black via-black/40 to-black/10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-0 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -23,30 +24,32 @@ export function HeroSection() {
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         className="relative z-10 w-full max-w-6xl text-center"
       >
-        <p className="font-mono text-[10px] md:text-[11px] tracking-[0.35em] uppercase text-text-muted mb-8">
+        <p className="font-mono text-[10px] md:text-[11px] tracking-[0.35em] uppercase text-white/70 mb-8">
           Premium Custom Fabrication // Delivered Pan-India
         </p>
 
-        <h1 className="font-display font-bold uppercase tracking-[-0.04em] text-text-primary leading-[0.9] text-[13vw] md:text-[7.2vw]">
-          Custom <span className="text-text-primary">3D Printing</span> &
-          <span className="block text-text-primary">Woodcraft.</span>
+        <h1 className="font-display font-bold uppercase tracking-[-0.04em] text-white leading-[0.9] text-[13vw] md:text-[7.2vw]">
+          Custom <span className="text-white">3D Printing</span> &
+          <span className="block text-white">Woodcraft.</span>
         </h1>
 
-        <p className="mt-8 max-w-3xl mx-auto font-sans text-[15px] md:text-[18px] leading-relaxed text-text-secondary">
+        <p className="mt-8 max-w-3xl mx-auto font-sans text-[15px] md:text-[18px] leading-relaxed text-white/80">
           Bring your ideas to life. We specialize in high-precision FDM/Resin 3D printing and artisan CNC wood carving for gifts, prototypes, and decor.
         </p>
+
+        <MiddleCountdown />
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/custom-order"
-            className="inline-flex items-center justify-center border border-white bg-white text-black rounded-none px-7 py-4 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:bg-accent hover:border-accent hover:text-black transition-colors duration-100"
+            className="inline-flex items-center justify-center border border-white bg-white text-black rounded-none px-7 py-4 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:bg-white/90 hover:border-white/90 transition-colors duration-100"
             data-cursor-label="CLICK"
           >
             Start Your Custom Order
           </Link>
           <Link
             href="/#collections"
-            className="inline-flex items-center justify-center border border-white text-white rounded-none px-7 py-4 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:border-accent hover:text-accent transition-colors duration-100"
+            className="inline-flex items-center justify-center border border-white/40 text-white rounded-none px-7 py-4 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:border-white hover:text-white transition-colors duration-100"
             data-cursor-label="VIEW"
           >
             Explore Collections

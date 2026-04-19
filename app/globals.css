@@ -17,8 +17,6 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-border-glow: var(--border-glow);
 
   /* Map standard shadcn variables to our brand */
   --color-background: var(--bg);
@@ -37,41 +35,53 @@
   --color-destructive-foreground: #FFFFFF;
   --color-ring: var(--accent);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
 
-}
-
-:root {
-  --bg: #000000;
-  --surface: #0a0a0a;
-  --surface-elevated: #111111;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-glow: rgba(255, 68, 0, 0.5);
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --text-muted: #444444;
-  --accent: #FF4400;
-  --accent-hover: #FF6633;
-  --radius: 4px;
 }
 
 @layer base {
+  /* LIGHT THEME (Default) */
+  :root {
+    --bg: #F4F4F5;
+    --surface: #FFFFFF;
+    --surface-elevated: #FAFAFA;
+    --border: rgba(0, 0, 0, 0.12);
+    --text-primary: #09090B;
+    --text-secondary: #52525B;
+    --text-muted: #A1A1AA;
+    --accent: #FF4400;
+  }
+
+  /* DARK THEME */
+  .dark {
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface-elevated: #111111;
+    --border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --text-muted: #444444;
+    --accent: #FF4400;
+  }
+
   * {
     @apply border-border outline-ring/50;
-    cursor: none !important;
   }
+
   body {
     background-color: var(--bg);
     color: var(--text-primary);
     font-family: var(--font-geist), sans-serif;
     position: relative;
+    transition: background-color 0.3s ease, color 0.3s ease;
     background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(to right, var(--border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+
   html {
     scroll-behavior: smooth;
   }

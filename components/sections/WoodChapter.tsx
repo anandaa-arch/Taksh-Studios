@@ -11,7 +11,7 @@ export function WoodChapter() {
       desc: 'Clean machining passes create repeatable geometry before hand-finished detailing.',
       image: 'https://images.unsplash.com/photo-1621255561081-34440c9d72dc?q=80&w=2000&auto=format&fit=crop&grayscale=true',
       video: '/videos/ba6ed7d930337da0597bcf926a1dc2fc.mp4',
-      videoClass: 'absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500',
+      videoClass: 'absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500',
       overlayClass: 'absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-0',
       span: 'md:col-span-2',
     },
@@ -70,13 +70,13 @@ export function WoodChapter() {
               <div className={card.overlayClass ?? 'absolute inset-0 z-0 bg-gradient-to-t from-black via-black/50 to-transparent'} />
 
               <div className="relative z-10 h-full flex flex-col">
-                <span className="self-end font-mono text-[10px] uppercase tracking-[0.24em] text-text-muted">
+                <span className="self-end font-mono text-[10px] uppercase tracking-[0.24em] text-white/50">
                   {card.code}
                 </span>
-                <h3 className="mt-auto font-display font-bold uppercase tracking-tight text-[28px] md:text-[34px] leading-[0.95] text-text-primary">
+                <h3 className="mt-auto font-display font-bold uppercase tracking-tight text-[28px] md:text-[34px] leading-[0.95] text-white">
                   {card.title}
                 </h3>
-                <p className="mt-3 font-sans text-[14px] leading-relaxed text-text-secondary max-w-md">
+                <p className="mt-3 font-sans text-[14px] leading-relaxed max-w-md text-white/80">
                   {card.desc}
                 </p>
               </div>
@@ -87,7 +87,7 @@ export function WoodChapter() {
         <div className="mt-8">
           <Link
             href="/products?category=wood-carving"
-            className="inline-flex items-center justify-center border border-white text-white rounded-none px-6 py-3 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:border-accent hover:text-accent transition-colors duration-100"
+            className="inline-flex items-center justify-center border border-black/20 text-[#09090B] rounded-none px-6 py-3 font-sans font-semibold text-[12px] uppercase tracking-[0.12em] hover:border-[#09090B] hover:text-[#09090B] transition-colors duration-100"
           >
             View Milling Specs
           </Link>
