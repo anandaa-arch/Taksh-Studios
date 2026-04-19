@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MiddleCountdown } from '@/components/ui/MiddleCountdown';
 
 export function HeroSection() {
   return (
@@ -36,8 +35,6 @@ export function HeroSection() {
         <p className="mt-8 max-w-3xl mx-auto font-sans text-[15px] md:text-[18px] leading-relaxed text-white/80">
           Bring your ideas to life. We specialize in high-precision FDM/Resin 3D printing and artisan CNC wood carving for gifts, prototypes, and decor.
         </p>
-
-        <MiddleCountdown />
 
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
