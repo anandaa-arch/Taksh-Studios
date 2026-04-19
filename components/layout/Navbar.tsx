@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagneticButton } from '../ui/MagneticButton';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 const links = [
   { name: 'Products', href: '/products' },
@@ -16,36 +17,68 @@ const links = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-50 px-6 py-6 flex items-center justify-between pointer-events-auto">
-        <Link 
-          href="/" 
-          className="font-mono text-[13px] tracking-[3px] text-text-primary uppercase z-50 mix-blend-difference"
+      <nav
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 py-3 h-16 md:h-20 flex items-center justify-between pointer-events-auto ${isScrolled
+          ? 'bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-black/10 dark:border-white/10'
+          : 'bg-transparent border-transparent'
+          }`}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-3 z-50 group"
           onClick={() => setIsOpen(false)}
         >
-          Taksh Studios
+          {/* Scaled up the image drastically to ignore its baked-in transparent padding */}
+          <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 -ml-3 md:-ml-4">
+            <img
+              src="/taksh-logo.png"
+              alt="Taksh Logo"
+              className="w-full h-full object-contain drop-shadow-xl scale-[1.7] md:scale-[2] transition-transform duration-300 group-hover:scale-[1.8] md:group-hover:scale-[2.1]"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+          <span className="font-bold tracking-[0.2em] text-base md:text-lg text-black dark:text-white uppercase transition-transform duration-300 group-hover:translate-x-1">
+            TAKSH STUDIOS
+          </span>
         </Link>
-        
+
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8 mix-blend-difference">
+        <div className="hidden md:flex items-center gap-8">
           <div className="flex items-center gap-6">
             {links.map((link) => (
-              <Link 
-                key={link.name} 
+              <Link
+                key={link.name}
                 href={link.href}
-                className="font-sans text-[13px] text-text-secondary hover:text-text-primary transition-colors"
+                className="font-sans text-[13px] text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
               >
                 {link.name}
               </Link>
             ))}
           </div>
+          <ThemeToggle />
           <MagneticButton className="inline-flex">
-            <Link 
-              href="/custom-order" 
-              className="font-mono text-[11px] bg-text-primary text-bg px-4 py-2 rounded-[3px] hover:bg-opacity-90 transition-all uppercase tracking-wider"
+            <Link
+              href="/custom-order"
+              className="font-mono text-[11px] bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80 px-4 py-2 rounded-[3px] transition-all uppercase tracking-wider"
             >
               Order Now
             </Link>
@@ -53,8 +86,8 @@ export function Navbar() {
         </div>
 
         {/* Mobile Toggle */}
-        <button 
-          className="md:hidden z-50 uppercase font-mono text-[12px] text-text-primary mix-blend-difference"
+        <button
+          className="md:hidden z-50 uppercase font-mono text-[12px] text-black dark:text-white"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? 'Close' : 'Menu'}
@@ -64,7 +97,7 @@ export function Navbar() {
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: '-100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '-100%' }}
@@ -79,10 +112,10 @@ export function Navbar() {
                   transition={{ delay: 0.2 + i * 0.1 }}
                   key={link.name}
                 >
-                  <Link 
+                  <Link
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="font-display text-5xl uppercase tracking-wider text-text-primary block text-text-primary hover:border-b hover:border-text-primary/50 transition-colors"
+                    className="font-display text-5xl uppercase tracking-wider text-text-primary block hover:border-b hover:border-text-primary/50 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -94,10 +127,10 @@ export function Navbar() {
                 transition={{ delay: 0.2 + links.length * 0.1 }}
                 className="mt-8"
               >
-                <Link 
+                <Link
                   href="/custom-order"
                   onClick={() => setIsOpen(false)}
-                  className="font-mono text-[14px] bg-text-primary text-bg px-6 py-3 rounded-[3px] hover:bg-opacity-90 transition-all uppercase tracking-wider inline-block"
+                  className="font-mono text-[14px] bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80 px-6 py-3 rounded-[3px] transition-all uppercase tracking-wider inline-block"
                 >
                   Start Custom Order
                 </Link>

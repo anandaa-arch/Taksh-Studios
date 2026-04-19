@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export default function CustomOrderPage() {
@@ -29,9 +29,9 @@ export default function CustomOrderPage() {
           muted
           loop
           playsInline
-          className="fixed inset-0 w-full h-full object-cover opacity-40 -z-10"
+          className="fixed inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 -z-10"
         />
-        <div className="absolute inset-0 z-0 bg-black/55 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-0 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-center">
           <motion.div
@@ -52,16 +52,16 @@ export default function CustomOrderPage() {
             </motion.svg>
           </motion.div>
 
-          <h2 className="font-display font-bold uppercase tracking-tight text-4xl md:text-5xl text-text-primary mb-6">
+          <h2 className="font-display font-bold uppercase tracking-tight text-4xl md:text-5xl text-white mb-6">
             We&apos;ve Received Your Vision.
           </h2>
-          <p className="font-sans text-[16px] text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
+          <p className="font-sans text-[16px] text-white/80 max-w-md mx-auto mb-10 leading-relaxed">
             Our team will reach out within 24 hours to discuss your order and provide a direct quote.
           </p>
 
           <Link 
             href="/"
-            className="font-sans text-[14px] text-text-muted text-text-primary hover:border-b hover:border-text-primary/50 transition-colors"
+            className="font-sans text-[14px] text-white/80 hover:border-b hover:border-white/60 transition-colors"
           >
             ← Back to Home
           </Link>
@@ -78,18 +78,18 @@ export default function CustomOrderPage() {
         muted
         loop
         playsInline
-        className="fixed inset-0 w-full h-full object-cover opacity-40 -z-10"
+        className="fixed inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 -z-10"
       />
-      <div className="absolute inset-0 z-0 bg-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-0 pointer-events-none" />
 
       {/* Hero Banner */}
       <div className="relative z-10 w-full h-[320px] flex flex-col justify-center items-center text-center px-6 overflow-hidden bg-surface/40 border-y border-border">
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-bg to-transparent" />
         <div className="relative z-10">
-          <h1 className="font-display font-bold uppercase tracking-tight text-5xl md:text-[56px] text-text-primary mb-4">
+          <h1 className="font-display font-bold uppercase tracking-tight text-5xl md:text-[56px] text-white mb-4">
             Tell Us Your Vision
           </h1>
-          <p className="font-sans text-[16px] text-text-secondary">
+          <p className="font-sans text-[16px] text-white/80">
             We craft it. Exactly as you imagine.
           </p>
         </div>

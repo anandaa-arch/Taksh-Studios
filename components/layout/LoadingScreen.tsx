@@ -22,7 +22,7 @@ export function LoadingScreen() {
     // Auto-hide after the animation sequence completes
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+    }, 2000); // 1.5s hold + fade in
 
     return () => clearTimeout(timer);
   }, []);
@@ -32,20 +32,24 @@ export function LoadingScreen() {
       {isLoading && (
         <motion.div
           key="loading-screen"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.0, ease: 'easeOut' }}
+          initial={{ y: 0 }}
+          exit={{ y: "-100%" }}
+          transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
           className="fixed inset-0 z-[100] bg-bg flex items-center justify-center pointer-events-none"
         >
-          <video
-            src="/videos/80f23c9ddf27c39529e86cc817bf6d3a.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-[30vw] h-[30vw] object-cover drop-shadow-2xl"
-          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center gap-4"
+          >
+            <h1 className="font-display text-5xl sm:text-6xl md:text-8xl font-bold uppercase tracking-tight text-black dark:text-white">
+              TAKSH STUDIOS
+            </h1>
+            <p className="font-mono text-[12px] tracking-widest text-zinc-500">
+              [ SYSTEM INITIALIZATION ... ]
+            </p>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
