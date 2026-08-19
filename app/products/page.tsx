@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getProductsByCategory, ProductCategory } from '@/lib/data/products';
 import { ProductCard } from '@/components/shared/ProductCard';
+import type { DbProduct } from '@/lib/supabase/types';
+
+type CategoryFilter = '3d-printing' | 'wood-carving' | 'all';
 
 export default function ProductsPage({
   searchParams,
@@ -12,17 +14,36 @@ export default function ProductsPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = use(searchParams);
-  const initialCategory = (resolvedSearchParams.category as ProductCategory) || 'all';
-  const [activeCategory, setActiveCategory] = useState<ProductCategory | 'all'>(initialCategory);
+  const initialCategory = (resolvedSearchParams.category as CategoryFilter) || 'all';
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>(initialCategory);
   const [sortBy, setSortBy] = useState('popular');
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const products = getProductsByCategory(activeCategory);
+  useEffect(() => {
+    async function fetchProducts() {
+      setIsLoading(true);
+      try {
+        const url = activeCategory === 'all'
+          ? '/api/products'
+          : `/api/products?category=${activeCategory}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setProducts(data.products || []);
+      } catch {
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [activeCategory]);
 
   // Sorting logic
   const sortedProducts = [...products].sort((a, b) => {
     if (sortBy === 'price-low') return a.price - b.price;
     if (sortBy === 'price-high') return b.price - a.price;
-    if (sortBy === 'newest') return b.id.localeCompare(a.id); // arbitrary logic for placeholder
+    if (sortBy === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     // default popular
     return a.popular === b.popular ? 0 : a.popular ? -1 : 1;
   });
@@ -83,19 +104,37 @@ export default function ProductsPage({
 
       {/* Product Grid */}
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-          {sortedProducts.map((product, i) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="flex justify-center"
-            >
-              <ProductCard product={product} />
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex justify-center">
+                <div className="w-[280px] md:w-[320px]">
+                  <div className="w-full aspect-[3/4] rounded-[3px] bg-surface animate-pulse mb-5" />
+                  <div className="h-4 bg-surface rounded animate-pulse mb-2 w-3/4" />
+                  <div className="h-3 bg-surface rounded animate-pulse w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : sortedProducts.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="font-sans text-[16px] text-text-secondary">No products found in this category.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {sortedProducts.map((product, i) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="flex justify-center"
+              >
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

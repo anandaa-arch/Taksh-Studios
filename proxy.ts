@@ -5,16 +5,20 @@ export function proxy(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
 
   if (isAdminRoute) {
-    // Basic Auth Check Example
-    // In production, use next-auth or proper session tokens
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      console.error('[proxy] ADMIN_PASSWORD environment variable is not set.');
+      return new NextResponse('Server configuration error', { status: 500 });
+    }
+
     const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'taksh2024';
 
     if (!authHeader) {
       return new NextResponse('Authentication required', {
         status: 401,
         headers: {
-          'WWW-Authenticate': 'Basic realm="Secure Area"',
+          'WWW-Authenticate': 'Basic realm="Taksh Studios Admin"',
         },
       });
     }

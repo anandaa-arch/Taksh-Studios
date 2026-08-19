@@ -29,7 +29,7 @@ export function HeroSection() {
 
         <h1 className="font-display font-bold uppercase tracking-[-0.04em] text-white leading-[0.9] text-[13vw] md:text-[7.2vw]">
           Custom <span className="text-white">3D Printing</span> &
-          <span className="block text-white">Woodcraft.</span>
+          <span className="block text-white">Woodcraft</span>
         </h1>
 
         <p className="mt-8 max-w-3xl mx-auto font-sans text-[15px] md:text-[18px] leading-relaxed text-white/80">

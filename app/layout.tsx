@@ -20,7 +20,7 @@ const geist = Geist({
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
-});
+}); 
 
 export const metadata: Metadata = {
   title: "Taksh Studios | Crafted with Precision",

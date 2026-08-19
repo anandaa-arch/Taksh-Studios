@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="bg-black text-white border-t border-white/10 mt-auto w-full">
       <div className="h-[1px] w-full bg-gradient-to-r from-accent via-transparent to-accent" />
-      
+
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="flex flex-col items-center mb-20 text-center">
           <Link href="/" className="font-display font-bold uppercase tracking-[-0.04em] leading-[0.9] text-[11vw] md:text-[4.2vw] text-white mb-4">
@@ -20,21 +20,21 @@ export function Footer() {
             <Link href="/products?category=wood-carving" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Wood Carving</Link>
             <Link href="/custom-order" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Custom Orders</Link>
           </div>
-          
+
           <div className="flex flex-col gap-4">
             <h4 className="font-mono text-white text-[11px] uppercase tracking-wider mb-2">Company</h4>
             <Link href="/about" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">About Us</Link>
             <Link href="/process" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Our Process</Link>
             <Link href="/#collections" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Collections</Link>
           </div>
-          
+
           <div className="flex flex-col gap-4">
             <h4 className="font-mono text-white text-[11px] uppercase tracking-wider mb-2">Support</h4>
             <Link href="/custom-order" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Contact</Link>
             <Link href="/faq" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">FAQ</Link>
             <Link href="/shipping" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Shipping & Returns</Link>
           </div>
-          
+
           <div className="flex flex-col gap-4">
             <h4 className="font-mono text-white text-[11px] uppercase tracking-wider mb-2">Social</h4>
             <a href="#" className="text-white/70 hover:text-white hover:border-b hover:border-white/40 transition-colors">Instagram</a>

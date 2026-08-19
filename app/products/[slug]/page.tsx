@@ -1,18 +1,83 @@
-import { getProductBySlug, products } from '@/lib/data/products';
+import { createServerClient } from '@/lib/supabase/config';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import type { DbProduct } from '@/lib/supabase/types';
+import { AddToCartPanel } from '@/components/cart/AddToCartPanel';
 
-export function generateStaticParams() {
-  return products.map((product) => ({
-    slug: product.slug,
-  }));
+/**
+ * Generate static params from Supabase for build-time rendering.
+ * Falls back to dynamic rendering if Supabase is not configured.
+ */
+export async function generateStaticParams() {
+  try {
+    const supabase = createServerClient();
+    const { data } = await supabase.from('products').select('slug');
+    return (data || []).map((p) => ({ slug: p.slug }));
+  } catch {
+    // Supabase not configured yet — skip static generation
+    return [];
+  }
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const product = getProductBySlug(resolvedParams.slug);
+/**
+ * Dynamic metadata for SEO — product name and description in title/meta tags.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
 
-  if (!product) {
+  try {
+    const supabase = createServerClient();
+    const { data: product } = await supabase
+      .from('products')
+      .select('name, description, category, price, images')
+      .eq('slug', slug)
+      .single();
+
+    if (!product) {
+      return { title: 'Product Not Found' };
+    }
+
+    return {
+      title: product.name,
+      description: product.description,
+      openGraph: {
+        title: `${product.name} | Taksh Studios`,
+        description: product.description,
+        images: product.images?.[0] ? [{ url: product.images[0] }] : [],
+      },
+    };
+  } catch {
+    return { title: 'Product' };
+  }
+}
+
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  let product: DbProduct | null = null;
+
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error || !data) {
+      notFound();
+    }
+    product = data as DbProduct;
+  } catch {
     notFound();
   }
 
@@ -40,11 +105,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-bg/40 to-transparent pointer-events-none" />
             </div>
-            {/* Thumbnail row placeholder */}
+            {/* Thumbnail row */}
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-              {[product.images[0], product.images[0], product.images[0]].map((img, i) => (
+              {product.images.map((img, i) => (
                 <div key={i} className={`w-20 h-24 sm:w-24 sm:h-28 shrink-0 bg-surface rounded-[3px] overflow-hidden cursor-pointer border-2 ${i === 0 ? 'border-accent' : 'border-transparent'}`}>
-                  <img src={img} alt={`Thumbnail ${i}`} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
+                  <img src={img} alt={`${product.name} view ${i + 1}`} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
                 </div>
               ))}
             </div>
@@ -70,30 +135,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {product.description}
             </p>
             
-            {/* Options */}
-            <div className="flex flex-col gap-8 mb-10">
-              <div>
-                <h4 className="font-mono text-[11px] text-text-primary uppercase tracking-[2px] mb-3">Material</h4>
-                <div className="flex flex-wrap gap-3">
-                  {product.materials.map((mat, i) => (
-                    <button key={mat} className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] transition-all ${i === 0 ? 'border-accent text-text-primary bg-text-primary text-bg/5' : 'border-transparent border-[1.5px] border-text-primary/20 text-text-primary hover:border-text-primary'}`}>
-                      {mat}
-                    </button>
-                  ))}
-                </div>
+            {/* Stock Status */}
+            {!product.in_stock && (
+              <div className="flex items-center gap-2 text-destructive font-sans text-[14px] mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Currently out of stock
               </div>
-              
-              <div>
-                <h4 className="font-mono text-[11px] text-text-primary uppercase tracking-[2px] mb-3">Finish</h4>
-                <div className="flex flex-wrap gap-3">
-                  {product.finishes.map((fin, i) => (
-                    <button key={fin} className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] transition-all ${i === 0 ? 'border-accent text-text-primary bg-text-primary text-bg/5' : 'border-transparent border-[1.5px] border-text-primary/20 text-text-primary hover:border-text-primary'}`}>
-                      {fin}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-3 text-text-secondary font-sans text-[14px] mb-8 bg-surface p-4 rounded-[3px] border border-border/50">
               <svg className="w-5 h-5 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,14 +152,39 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <span>Ships in 5–8 working days · Pan-India delivery</span>
             </div>
 
-            <button className="w-full bg-text-primary text-bg font-sans font-semibold text-[16px] py-4 rounded-[3px] hover:brightness-110 transition-all mb-4">
-              Order This Product
-            </button>
+            <AddToCartPanel product={product} />
             <Link href="/custom-order" className="text-center font-sans text-[14px] text-text-muted hover:text-text-primary transition-colors">
               Need a custom variation? →
             </Link>
           </div>
         </div>
+
+        {/* JSON-LD Product Schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: product.name,
+              description: product.description,
+              image: product.images,
+              offers: {
+                '@type': 'Offer',
+                price: product.price,
+                priceCurrency: 'INR',
+                availability: product.in_stock
+                  ? 'https://schema.org/InStock'
+                  : 'https://schema.org/OutOfStock',
+                seller: {
+                  '@type': 'Organization',
+                  name: 'Taksh Studios',
+                },
+              },
+              category: product.category === '3d-printing' ? '3D Printed Products' : 'Wood Carved Products',
+            }),
+          }}
+        />
       </div>
     </div>
   );
