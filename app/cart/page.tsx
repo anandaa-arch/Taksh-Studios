@@ -57,11 +57,11 @@ export default function CartPage() {
                   <span className="font-mono text-[14px] text-text-primary">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex items-center gap-4 mt-6">
-                  <label className="font-mono text-[11px] uppercase tracking-wider text-text-muted" htmlFor={`quantity-${item.productId}`}>
+                  <label className="font-mono text-[11px] uppercase tracking-wider text-text-muted" htmlFor={`quantity-${item.productId}-${item.material ?? 'none'}-${item.finish ?? 'none'}`}>
                     Qty
                   </label>
                   <input
-                    id={`quantity-${item.productId}`}
+                    id={`quantity-${item.productId}-${item.material ?? 'none'}-${item.finish ?? 'none'}`}
                     type="number"
                     min="1"
                     value={item.quantity}

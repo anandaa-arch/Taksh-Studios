@@ -34,6 +34,18 @@ async function seed() {
   let skipped = 0;
 
   for (const product of products) {
+    const { data: existing } = await supabase
+      .from('products')
+      .select('id')
+      .eq('slug', product.slug)
+      .maybeSingle();
+
+    if (existing) {
+      console.log(`  ⏭️  ${product.name} (already exists)`);
+      skipped++;
+      continue;
+    }
+
     const row = {
       slug: product.slug,
       name: product.name,
@@ -47,28 +59,15 @@ async function seed() {
       in_stock: true,
     };
 
-    const { error } = await supabase
-      .from('products')
-      .upsert(row, { onConflict: 'slug', ignoreDuplicates: true });
+    const { error } = await supabase.from('products').insert(row);
 
     if (error) {
       console.error(`  ❌ Failed: ${product.name}`, error.message);
     } else {
-      // Check if it was actually inserted or skipped
-      const { data } = await supabase
-        .from('products')
-        .select('id')
-        .eq('slug', product.slug)
-        .single();
-
-      if (data) {
-        console.log(`  ✅ ${product.name} (${product.category})`);
-        inserted++;
-      }
+      console.log(`  ✅ ${product.name} (${product.category})`);
+      inserted++;
     }
   }
-
-  skipped = products.length - inserted;
 
   console.log(`\n📊 Results:`);
   console.log(`   Inserted: ${inserted}`);

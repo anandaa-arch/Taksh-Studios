@@ -29,11 +29,6 @@ const EMPTY_FORM: ProductFormData = {
   in_stock: true,
 };
 
-function getAuthHeader(): string {
-  // The browser already sends Basic Auth via proxy.ts challenge.
-  // For fetch calls from admin pages, we need to pass the cached credentials.
-  return '';
-}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DbProduct[]>([]);

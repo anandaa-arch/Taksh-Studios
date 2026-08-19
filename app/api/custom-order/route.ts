@@ -41,11 +41,37 @@ export async function POST(request: Request) {
     if (!fullName?.trim()) errors.push('Full Name is required');
     if (!email?.trim()) errors.push('Email is required');
     if (!phone?.trim()) errors.push('Phone Number is required');
-    if (!productType) errors.push('Product Type is required');
+    if (!productType || !['3d-printing', 'wood-carving'].includes(productType)) {
+      errors.push('Product Type must be "3d-printing" or "wood-carving"');
+    }
     if (!description?.trim()) errors.push('Description is required');
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.push('Invalid email address');
+    }
+
+    // Validate file if provided BEFORE inserting to database
+    let fileAttachment: { filename: string; content: Buffer } | undefined;
+
+    if (referenceFile && referenceFile.size > 0) {
+      const fileName = referenceFile.name.toLowerCase();
+      const extension = '.' + fileName.split('.').pop();
+
+      if (!ALLOWED_EXTENSIONS.includes(extension)) {
+        errors.push(`File type not allowed. Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      }
+
+      if (referenceFile.size > MAX_FILE_SIZE) {
+        errors.push('File size exceeds 25MB limit');
+      }
+
+      if (errors.length === 0) {
+        const arrayBuffer = await referenceFile.arrayBuffer();
+        fileAttachment = {
+          filename: referenceFile.name,
+          content: Buffer.from(arrayBuffer),
+        };
+      }
     }
 
     if (errors.length > 0) {
@@ -63,7 +89,7 @@ export async function POST(request: Request) {
         product_type: productType,
         description,
         material: material || null,
-        quantity: Number(quantity || 1),
+        quantity: Math.max(1, parseInt(quantity || '1', 10) || 1),
         deadline: deadline || null,
         budget: budget || null,
         reference_file_name: referenceFile?.name || null,
@@ -78,34 +104,6 @@ export async function POST(request: Request) {
         { error: 'Failed to save your order request. Please try again.' },
         { status: 500 }
       );
-    }
-
-    // Validate file if provided
-    let fileAttachment: { filename: string; content: Buffer } | undefined;
-
-    if (referenceFile && referenceFile.size > 0) {
-      const fileName = referenceFile.name.toLowerCase();
-      const extension = '.' + fileName.split('.').pop();
-
-      if (!ALLOWED_EXTENSIONS.includes(extension)) {
-        return NextResponse.json(
-          { error: `File type not allowed. Accepted: ${ALLOWED_EXTENSIONS.join(', ')}` },
-          { status: 400 }
-        );
-      }
-
-      if (referenceFile.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { error: 'File size exceeds 25MB limit' },
-          { status: 400 }
-        );
-      }
-
-      const arrayBuffer = await referenceFile.arrayBuffer();
-      fileAttachment = {
-        filename: referenceFile.name,
-        content: Buffer.from(arrayBuffer),
-      };
     }
 
     // Format values for display

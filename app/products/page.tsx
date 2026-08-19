@@ -8,13 +8,16 @@ import type { DbProduct } from '@/lib/supabase/types';
 
 type CategoryFilter = '3d-printing' | 'wood-carving' | 'all';
 
+const VALID_CATEGORIES: CategoryFilter[] = ['all', '3d-printing', 'wood-carving'];
+
 export default function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = use(searchParams);
-  const initialCategory = (resolvedSearchParams.category as CategoryFilter) || 'all';
+  const rawCategory = resolvedSearchParams.category as CategoryFilter;
+  const initialCategory = VALID_CATEGORIES.includes(rawCategory) ? rawCategory : 'all';
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>(initialCategory);
   const [sortBy, setSortBy] = useState('popular');
   const [products, setProducts] = useState<DbProduct[]>([]);

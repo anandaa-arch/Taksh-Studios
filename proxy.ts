@@ -23,11 +23,19 @@ export function proxy(request: NextRequest) {
       });
     }
 
-    const authValue = authHeader.split(' ')[1];
-    const [user, pwd] = Buffer.from(authValue, 'base64').toString().split(':');
+    try {
+      const authValue = authHeader.split(' ')[1];
+      if (!authValue) {
+        return new NextResponse('Invalid authorization header', { status: 400 });
+      }
+      const decoded = atob(authValue);
+      const [user, pwd] = decoded.split(':');
 
-    if (user !== 'admin' || pwd !== adminPassword) {
-      return new NextResponse('Invalid credentials', { status: 401 });
+      if (user !== 'admin' || pwd !== adminPassword) {
+        return new NextResponse('Invalid credentials', { status: 401 });
+      }
+    } catch {
+      return new NextResponse('Invalid authorization header', { status: 400 });
     }
   }
 

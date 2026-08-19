@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/config';
 
 const ALLOWED_EXTENSIONS = ['.stl', '.obj', '.jpg', '.jpeg', '.png', '.pdf', '.webp'];
+const ALLOWED_BUCKETS = ['product-images', 'order-files'] as const;
+type AllowedBucket = (typeof ALLOWED_BUCKETS)[number];
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 /**
  * POST /api/upload
  * Uploads a file to Supabase Storage.
- * Query params:
+ * Form data fields:
+ *   - file: File (required)
  *   - bucket: 'product-images' | 'order-files' (default: 'order-files')
  *
  * Returns: { url: string, fileName: string }
@@ -17,7 +20,10 @@ export async function POST(request: Request) {
     const supabase = createServerClient();
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const bucket = (formData.get('bucket') as string) || 'order-files';
+    const requestedBucket = formData.get('bucket') as string | null;
+    const bucket: AllowedBucket = requestedBucket && (ALLOWED_BUCKETS as readonly string[]).includes(requestedBucket)
+      ? (requestedBucket as AllowedBucket)
+      : 'order-files';
 
     if (!file || file.size === 0) {
       return NextResponse.json(
