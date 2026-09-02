@@ -1,24 +1,119 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const ALLOWED_EXTENSIONS = ['.stl', '.obj', '.jpg', '.jpeg', '.png', '.pdf'];
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 export default function CustomOrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [type, setType] = useState<'3d-printing' | 'wood-carving'>('3d-printing');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function validateFile(file: File): string | null {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      return `File type "${extension}" is not supported. Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return `File is too large (${formatFileSize(file.size)}). Maximum size is 25MB.`;
+    }
+    return null;
+  }
+
+  function handleFileSelect(file: File) {
+    setFileError('');
+    const error = validateFile(file);
+    if (error) {
+      setFileError(error);
+      setSelectedFile(null);
+      return;
+    }
+    setSelectedFile(file);
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileSelect(file);
+  }
+
+  function handleRemoveFile() {
+    setSelectedFile(null);
+    setFileError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
+    setErrorMessage('');
+
+    const formData = new FormData(e.currentTarget);
+
+    // Append the product type (synced from state, not a native form element)
+    formData.set('productType', type);
+
+    // Append the file if selected
+    if (selectedFile) {
+      formData.set('referenceFile', selectedFile);
+    }
+
+    try {
+      const res = await fetch('/api/custom-order', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setErrorMessage(result.error || 'Something went wrong. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+
       setIsSubmitting(false);
       setIsSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 1500);
-  };
+    } catch {
+      setErrorMessage('Network error. Please check your connection and try again.');
+      setIsSubmitting(false);
+    }
+  }
 
   if (isSuccess) {
     return (
@@ -96,23 +191,40 @@ export default function CustomOrderPage() {
       </div>
 
       <div className="relative z-10 max-w-[680px] mx-auto px-6 mt-16">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        {/* Error Banner */}
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-[3px] flex items-start gap-3"
+          >
+            <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div>
+              <p className="font-sans text-[14px] text-red-400">{errorMessage}</p>
+            </div>
+          </motion.div>
+        )}
+
+        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-8">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Full Name</label>
-              <input required type="text" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="Yuvraj Singh" />
+              <label htmlFor="fullName" className="font-sans text-[14px] text-text-primary">Full Name</label>
+              <input required id="fullName" name="fullName" type="text" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="Yuvraj Singh" />
             </div>
             
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Email Address</label>
-              <input required type="email" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="yuvraj@example.com" />
+              <label htmlFor="email" className="font-sans text-[14px] text-text-primary">Email Address</label>
+              <input required id="email" name="email" type="email" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="yuvraj@example.com" />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-sans text-[14px] text-text-primary">Phone Number</label>
-            <input required type="tel" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="+91 XXXXX XXXXX" />
+            <label htmlFor="phone" className="font-sans text-[14px] text-text-primary">Phone Number</label>
+            <input required id="phone" name="phone" type="tel" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors" placeholder="+91 XXXXX XXXXX" />
           </div>
 
           <div className="flex flex-col gap-4 mt-4">
@@ -137,25 +249,76 @@ export default function CustomOrderPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-sans text-[14px] text-text-primary">Describe Your Idea</label>
-            <textarea required className="w-full min-h-[160px] bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors resize-y" placeholder="Describe the dimensions, specific features, or text you want..." />
+            <label htmlFor="description" className="font-sans text-[14px] text-text-primary">Describe Your Idea</label>
+            <textarea required id="description" name="description" className="w-full min-h-[160px] bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none transition-colors resize-y" placeholder="Describe the dimensions, specific features, or text you want..." />
           </div>
 
+          {/* File Upload */}
           <div className="flex flex-col gap-2">
             <label className="font-sans text-[14px] text-text-primary">Upload Reference (Optional)</label>
-            <div className="w-full p-10 border border-dashed border-border rounded-[3px] flex flex-col items-center text-center bg-surface hover:border-accent/50 transition-colors cursor-pointer group">
-              <svg className="w-8 h-8 text-text-muted group-text-text-primary hover:border-b hover:border-text-primary/50 transition-colors mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <div className="font-sans text-[15px] text-text-primary mb-2">Drop your file here or click to browse</div>
-              <div className="font-sans text-[13px] text-text-muted">Accepts: .STL, .OBJ, .JPG, .PNG, .PDF — Max 25MB</div>
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="referenceFile"
+              accept=".stl,.obj,.jpg,.jpeg,.png,.pdf"
+              onChange={handleFileInputChange}
+              className="hidden"
+              id="referenceFile"
+            />
+
+            {selectedFile ? (
+              <div className="w-full p-6 border border-accent/50 rounded-[3px] bg-surface flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <svg className="w-6 h-6 text-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <div className="min-w-0">
+                    <div className="font-sans text-[14px] text-text-primary truncate">{selectedFile.name}</div>
+                    <div className="font-sans text-[12px] text-text-muted">{formatFileSize(selectedFile.size)}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="flex-shrink-0 ml-4 p-1.5 text-text-muted hover:text-red-400 transition-colors"
+                  aria-label="Remove file"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`w-full p-10 border border-dashed rounded-[3px] flex flex-col items-center text-center transition-colors cursor-pointer group ${
+                  isDragging
+                    ? 'border-accent bg-accent/5'
+                    : 'border-border bg-surface hover:border-accent/50'
+                }`}
+              >
+                <svg className="w-8 h-8 text-text-muted group-hover:text-text-primary transition-colors mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <div className="font-sans text-[15px] text-text-primary mb-2">
+                  {isDragging ? 'Drop your file here' : 'Drop your file here or click to browse'}
+                </div>
+                <div className="font-sans text-[13px] text-text-muted">Accepts: .STL, .OBJ, .JPG, .PNG, .PDF — Max 25MB</div>
+              </div>
+            )}
+
+            {fileError && (
+              <p className="font-sans text-[13px] text-red-400 mt-1">{fileError}</p>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Preferred Material / Finish</label>
-              <select className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none appearance-none">
+              <label htmlFor="material" className="font-sans text-[14px] text-text-primary">Preferred Material / Finish</label>
+              <select id="material" name="material" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none appearance-none">
                 <option value="recommend">Recommend for me</option>
                 {type === '3d-printing' ? (
                   <>
@@ -172,20 +335,20 @@ export default function CustomOrderPage() {
             </div>
             
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Quantity</label>
-              <input type="number" min="1" defaultValue="1" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none" />
+              <label htmlFor="quantity" className="font-sans text-[14px] text-text-primary">Quantity</label>
+              <input id="quantity" name="quantity" type="number" min="1" defaultValue="1" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Required By (Optional)</label>
-              <input type="date" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none" />
+              <label htmlFor="deadline" className="font-sans text-[14px] text-text-primary">Required By (Optional)</label>
+              <input id="deadline" name="deadline" type="date" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none" />
             </div>
             
             <div className="flex flex-col gap-2">
-              <label className="font-sans text-[14px] text-text-primary">Budget Range (Optional)</label>
-              <select className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none appearance-none">
+              <label htmlFor="budget" className="font-sans text-[14px] text-text-primary">Budget Range (Optional)</label>
+              <select id="budget" name="budget" className="w-full bg-surface border border-border rounded-[3px] px-4 py-3.5 text-text-primary font-sans text-[15px] focus:border-accent focus:outline-none appearance-none">
                 <option value="no-budget">No specific budget</option>
                 <option value="under-2k">Under ₹2,000</option>
                 <option value="2k-5k">₹2,000 - ₹5,000</option>

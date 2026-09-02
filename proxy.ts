@@ -5,25 +5,37 @@ export function proxy(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
 
   if (isAdminRoute) {
-    // Basic Auth Check Example
-    // In production, use next-auth or proper session tokens
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      console.error('[proxy] ADMIN_PASSWORD environment variable is not set.');
+      return new NextResponse('Server configuration error', { status: 500 });
+    }
+
     const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'taksh2024';
 
     if (!authHeader) {
       return new NextResponse('Authentication required', {
         status: 401,
         headers: {
-          'WWW-Authenticate': 'Basic realm="Secure Area"',
+          'WWW-Authenticate': 'Basic realm="Taksh Studios Admin"',
         },
       });
     }
 
-    const authValue = authHeader.split(' ')[1];
-    const [user, pwd] = Buffer.from(authValue, 'base64').toString().split(':');
+    try {
+      const authValue = authHeader.split(' ')[1];
+      if (!authValue) {
+        return new NextResponse('Invalid authorization header', { status: 400 });
+      }
+      const decoded = atob(authValue);
+      const [user, pwd] = decoded.split(':');
 
-    if (user !== 'admin' || pwd !== adminPassword) {
-      return new NextResponse('Invalid credentials', { status: 401 });
+      if (user !== 'admin' || pwd !== adminPassword) {
+        return new NextResponse('Invalid credentials', { status: 401 });
+      }
+    } catch {
+      return new NextResponse('Invalid authorization header', { status: 400 });
     }
   }
 

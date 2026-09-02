@@ -5,7 +5,6 @@ import { LoadingScreen } from "@/components/layout/LoadingScreen";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import AnnouncementBanner from "@/components/ui/AnnouncementBanner";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -21,7 +20,7 @@ const geist = Geist({
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
-});
+}); 
 
 export const metadata: Metadata = {
   title: "Taksh Studios | Crafted with Precision",
@@ -38,7 +37,6 @@ export default function RootLayout({
       <body className={`${geist.variable} ${geistMono.variable} ${display.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
           <LoadingScreen />
-          <AnnouncementBanner />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

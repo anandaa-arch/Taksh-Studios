@@ -1,9 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ScrollAnimationWrapper } from '../shared/ScrollAnimationWrapper';
 import { ChapterLabel } from '../shared/ChapterLabel';
 import { ProductCard } from '../shared/ProductCard';
-import { getPopularProducts } from '@/lib/data/products';
+import type { DbProduct } from '@/lib/supabase/types';
 import useEmblaCarousel from 'embla-carousel-react';
 
 export function FeaturedProducts() {
@@ -12,8 +13,24 @@ export function FeaturedProducts() {
     containScroll: 'trimSnaps',
     dragFree: true
   });
-  
-  const popularProducts = getPopularProducts();
+
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPopular() {
+      try {
+        const res = await fetch('/api/products?popular=true');
+        const data = await res.json();
+        setProducts(data.products || []);
+      } catch {
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPopular();
+  }, []);
 
   return (
     <section id="popular" className="relative w-full py-24 md:h-screen md:py-0 flex flex-col justify-center bg-bg">
@@ -33,9 +50,24 @@ export function FeaturedProducts() {
       <ScrollAnimationWrapper delay={0.4} className="w-full">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex px-6 md:px-[calc(50vw-40rem)] gap-8 will-change-transform cursor-grab active:cursor-grabbing">
-            {popularProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {isLoading ? (
+              // Loading skeletons matching ProductCard dimensions
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="w-[280px] md:w-[320px] shrink-0">
+                  <div className="w-full aspect-[3/4] rounded-[3px] bg-surface animate-pulse mb-5" />
+                  <div className="h-4 bg-surface rounded animate-pulse mb-2 w-3/4" />
+                  <div className="h-3 bg-surface rounded animate-pulse w-1/2" />
+                </div>
+              ))
+            ) : products.length === 0 ? (
+              <div className="text-text-secondary font-sans text-sm px-6">
+                No featured products yet.
+              </div>
+            ) : (
+              products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            )}
           </div>
         </div>
       </ScrollAnimationWrapper>

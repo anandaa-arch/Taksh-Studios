@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagneticButton } from '../ui/MagneticButton';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { useCartItemCount } from '@/lib/cart-store';
 
 const links = [
   { name: 'Products', href: '/products' },
@@ -18,6 +18,7 @@ const links = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const cartItemCount = useCartItemCount();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,6 +76,9 @@ export function Navbar() {
             ))}
           </div>
           <ThemeToggle />
+          <Link href="/cart" className="font-mono text-[11px] uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors">
+            Cart ({cartItemCount})
+          </Link>
           <MagneticButton className="inline-flex">
             <Link
               href="/custom-order"
@@ -135,6 +139,13 @@ export function Navbar() {
                   Start Custom Order
                 </Link>
               </motion.div>
+              <Link
+                href="/cart"
+                onClick={() => setIsOpen(false)}
+                className="font-mono text-[14px] uppercase tracking-wider text-text-primary hover:border-b hover:border-text-primary/50 transition-colors"
+              >
+                Cart ({cartItemCount})
+              </Link>
             </div>
           </motion.div>
         )}
