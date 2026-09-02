@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { DbProduct } from '@/lib/supabase/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 type ProductFormData = {
   name: string;
@@ -46,13 +47,17 @@ export default function AdminProductsPage() {
   // Temp inputs for array fields
   const [materialInput, setMaterialInput] = useState('');
   const [finishInput, setFinishInput] = useState('');
-  const [imageInput, setImageInput] = useState('');
+
+  // Image upload state
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/products');
+      const res = await adminFetch('/api/admin/products');
       if (!res.ok) throw new Error('Failed to fetch products');
       const data = await res.json();
       setProducts(data.products || []);
@@ -133,7 +138,8 @@ export default function AdminProductsPage() {
     setFormError(null);
     setMaterialInput('');
     setFinishInput('');
-    setImageInput('');
+    setImageUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   // Create product
@@ -142,7 +148,7 @@ export default function AdminProductsPage() {
     setFormError(null);
 
     try {
-      const res = await fetch('/api/admin/products', {
+      const res = await adminFetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +176,7 @@ export default function AdminProductsPage() {
     setFormError(null);
 
     try {
-      const res = await fetch(`/api/admin/products/${editingProduct.id}`, {
+      const res = await adminFetch(`/api/admin/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,7 +203,7 @@ export default function AdminProductsPage() {
     setIsSaving(true);
 
     try {
-      const res = await fetch(`/api/admin/products/${deletingProduct.id}`, {
+      const res = await adminFetch(`/api/admin/products/${deletingProduct.id}`, {
         method: 'DELETE',
       });
 
@@ -284,40 +290,107 @@ export default function AdminProductsPage() {
           />
         </div>
 
-        {/* Image URLs */}
+        {/* Product Images — file upload */}
         <div>
-          <label className="font-mono text-[11px] uppercase tracking-wider text-text-muted block mb-2">Image URLs</label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={imageInput}
-              onChange={(e) => setImageInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addToArray('images', imageInput);
-                  setImageInput('');
+          <label className="font-mono text-[11px] uppercase tracking-wider text-text-muted block mb-2">
+            Product Images
+          </label>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            id="product-image-upload"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="hidden"
+            onChange={async (e) => {
+              const files = Array.from(e.target.files || []);
+              if (!files.length) return;
+              setIsUploadingImage(true);
+              setImageUploadError(null);
+              const uploadedUrls: string[] = [];
+              for (const file of files) {
+                try {
+                  const fd = new FormData();
+                  fd.append('file', file);
+                  fd.append('bucket', 'product-images');
+                  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                  const json = await res.json();
+                  if (!res.ok) throw new Error(json.error || 'Upload failed');
+                  uploadedUrls.push(json.url);
+                } catch (err) {
+                  setImageUploadError(err instanceof Error ? err.message : 'Upload failed');
                 }
-              }}
-              className="flex-1 bg-bg border border-border rounded-[3px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-              placeholder="https://..."
-            />
-            <button
-              type="button"
-              onClick={() => { addToArray('images', imageInput); setImageInput(''); }}
-              className="px-3 py-2 bg-surface border border-border rounded-[3px] text-sm text-text-secondary hover:text-text-primary transition-colors"
-            >
-              Add
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.images.map((img, i) => (
-              <div key={i} className="flex items-center gap-1 bg-bg border border-border rounded-[3px] px-2 py-1 text-[12px] text-text-secondary">
-                <span className="max-w-[200px] truncate">{img}</span>
-                <button onClick={() => removeFromArray('images', i)} className="text-text-muted hover:text-destructive ml-1">×</button>
-              </div>
-            ))}
-          </div>
+              }
+              if (uploadedUrls.length) {
+                setFormData((prev) => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
+              }
+              setIsUploadingImage(false);
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }}
+          />
+
+          {/* Upload trigger button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingImage}
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-accent rounded-[3px] px-4 py-5 text-sm text-text-secondary hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isUploadingImage ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Click to upload images (JPG, PNG, WebP)
+              </>
+            )}
+          </button>
+
+          {/* Upload error */}
+          {imageUploadError && (
+            <p className="text-[12px] text-destructive mt-2">{imageUploadError}</p>
+          )}
+
+          {/* Thumbnail grid */}
+          {formData.images.length > 0 && (
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              {formData.images.map((img, i) => (
+                <div key={i} className="relative group aspect-square rounded-[3px] overflow-hidden bg-bg border border-border">
+                  <img
+                    src={img}
+                    alt={`Product image ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-bg/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => removeFromArray('images', i)}
+                      className="w-7 h-7 rounded-full bg-destructive text-white flex items-center justify-center text-sm leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {/* Primary badge */}
+                  {i === 0 && (
+                    <div className="absolute top-1 left-1 font-mono text-[8px] uppercase tracking-wider bg-accent text-bg px-1.5 py-0.5 rounded-sm">
+                      Cover
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Materials */}

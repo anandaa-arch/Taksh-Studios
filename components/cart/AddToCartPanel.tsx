@@ -35,7 +35,11 @@ export function AddToCartPanel({ product }: { product: DbProduct }) {
                 key={option}
                 type="button"
                 onClick={() => setMaterial(option)}
-                className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] transition-all ${material === option ? 'border-accent text-text-primary bg-text-primary text-bg/5' : 'border-transparent border-[1.5px] border-text-primary/20 text-text-primary hover:border-text-primary'}`}
+                className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] font-medium transition-all ${
+                  material === option
+                    ? 'bg-text-primary text-bg border-text-primary shadow-sm'
+                    : 'bg-transparent border-border text-text-secondary hover:text-text-primary hover:border-text-primary'
+                }`}
               >
                 {option}
               </button>
@@ -51,7 +55,11 @@ export function AddToCartPanel({ product }: { product: DbProduct }) {
                 key={option}
                 type="button"
                 onClick={() => setFinish(option)}
-                className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] transition-all ${finish === option ? 'border-accent text-text-primary bg-text-primary text-bg/5' : 'border-transparent border-[1.5px] border-text-primary/20 text-text-primary hover:border-text-primary'}`}
+                className={`px-4 py-2 border rounded-[3px] font-sans text-[13px] font-medium transition-all ${
+                  finish === option
+                    ? 'bg-text-primary text-bg border-text-primary shadow-sm'
+                    : 'bg-transparent border-border text-text-secondary hover:text-text-primary hover:border-text-primary'
+                }`}
               >
                 {option}
               </button>
